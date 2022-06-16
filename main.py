@@ -2,6 +2,7 @@
 import cv2
 import time
 import pyvirtualcam
+from collections import namedtuple
 
 # TODO move webcam and cascades' init somewhere
 # open webcam
@@ -15,36 +16,36 @@ face_cascade = cv2.CascadeClassifier()
 face_cascade.load(face_cascade_name)
 
 def main(demo=True):
-
+    
+    # everything is in frames
     frame_num = 0
+    last_face_update = -1000
+    detection_period = 10 
+
+    out_dim = namedtuple('out_dim', ['width', 'height'])(512, 512)
 
     face = None
     # TODO rewrite ugly try/except as a context manager for webcam INPUT and maybe cv window?
     try:
-        with pyvirtualcam.Camera(width=512,height=512,fps=30) as cam:
+        with pyvirtualcam.Camera(width=out_dim.width,height=out_dim.height,fps=30) as cam:
             while True:
 
                 ret, frame = cap.read()
-                # calc initial middle square
-                center = (frame.shape[0]//2, frame.shape[1]//2) # y, x
-                side = min(frame.shape[0:2])
-
-                # TODO add "or no face for a long time"
-                if face is None:
-                    face = (center[1]-side//2, center[0]-side//2,side,side)
-
 
                 # face detection
                 # TODO run in a separate process
-                if frame_num % 10 == 0:
+                if frame_num % detection_period == 0:
                     faces = find_faces(frame, face_cascade)
-                    # returns [(x,y,w,h)]
-                    # TODO replace faces[0] with biggest square
+                    # TODO replace faces[0] with biggest square, check that it's not empty
                     if len(faces) != 0:
                         face = faces[0]
-                
-                # TODO smoothing (square is a target, hardcode speed, move on each iteration)
-                frame = face_zoom(frame, face, 512, 512) 
+                        last_face_update = frame_num
+               
+                # if there is no face, show as much as possible of the square
+                if frame_num - last_face_update > 30*3:
+                    face = None
+
+                frame = face_zoom(frame, face, out_dim)
 
                 frame_num += 1
                 
@@ -62,23 +63,24 @@ def main(demo=True):
         cap.release()
         cv2.destroyAllWindows()
 
-def face_rect(frame, face):
-    x,y,w,h = face
-    top_left_corner = (x, y)
-    bottom_right_corner  = (x+w, y+h)
-    frame = cv2.rectangle(frame, top_left_corner, bottom_right_corner, (0,255,0), 3)  
-    return frame
+def face_zoom(frame, face, out_dim, offset_ratio = 0.3):
+    # TODO rewrite to support other shapes maybe?
+    # out_dim is (h,w)
+    if face is None:
+        center = (frame.shape[0]//2, frame.shape[1]//2) # y, x
+        side = min(frame.shape[0:2])
+        face = (center[1]-side//2, center[0]-side//2,side,side)
+        offset_ratio = 0
 
-def face_zoom(frame, face, height, width):
     x,y,w,h = face
-    # make it a square I guess
-    side = max(w,h)
-    offset = side//3
+    # make it a square
+    side = max(h,w)
+    offset = int(side*offset_ratio)
     # TODO check for out of bounds maybe?
     frame = frame[y-offset:y+side+offset, x-offset:x+side+offset, :]
 
     # resize
-    frame = cv2.resize(frame, (height, width), interpolation = cv2.INTER_AREA)  
+    frame = cv2.resize(frame, out_dim, interpolation = cv2.INTER_AREA)  
 
     return frame
 
