@@ -72,7 +72,7 @@ def face_zoom(frame, face, out_dim, offset_ratio):
         offset = int(side*offset_ratio)
         # do the crop
         cropped_frame = frame[face.y-offset:face.y+side+offset, face.x-offset:face.x+side+offset, :]
-    if not face or candidate_frame.size == 0:
+    if not face or cropped_frame.size == 0:
         center = (frame.shape[0]//2, frame.shape[1]//2) # sic!
         side = min(frame.shape[0:2])
         x = center[1]-side//2
