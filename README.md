@@ -1,5 +1,6 @@
 # facequare
 a simple face tracking script
+
 webcam -> this script -> virtual webcam
 
 # warning
