@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from sqlite3 import adapt
 import cv2
 import pyvirtualcam
 from collections import namedtuple
