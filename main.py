@@ -6,10 +6,8 @@ import numpy as np
 from multiprocessing import Process, Pipe
 from time import time
 
-# XXX make it a dataclass?
 Rect = namedtuple("Rect", ["x", "y", "w", "h"])
 Dim = namedtuple("Dim", ["h", "w"])
-
 
 def main(
     cam_index=0,
@@ -111,7 +109,6 @@ def find_face_worker(conn, offset_ratio):
         conn.send(face)
 
 
-# XXX make a Rect method?
 def adapt_rect(in_dim, out_dim, rect):
 
     w = rect.w
