@@ -9,8 +9,9 @@ from time import time
 Rect = namedtuple("Rect", ["x", "y", "w", "h"])
 Dim = namedtuple("Dim", ["h", "w"])
 
+
 def main(
-    cam_index=0,
+    cam_index=1,  # TODO parameterize
     out_dim=Dim(512, 512),
     speed=0.1,
     demo=False,
@@ -25,7 +26,12 @@ def main(
     p = Process(target=find_face_worker, args=(child_conn, offset_ratio))
     p.start()
     with (
-        pyvirtualcam.Camera(width=out_dim.w, height=out_dim.h, fps=out_fps) as out_cam,
+        pyvirtualcam.Camera(
+            width=out_dim.w,
+            height=out_dim.h,
+            fps=out_fps,
+            device="/dev/video0",  # TODO parameterize
+        ) as out_cam,
         webcam_input(cam_index) as get_frame,
     ):
         frame = get_frame()

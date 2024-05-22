@@ -1,4 +1,5 @@
 certifi==2022.5.18.1
 numpy==1.22.4
 opencv-contrib-python==4.6.0.66
+opencv-python==4.9.0.80
 pyvirtualcam==0.9.1
